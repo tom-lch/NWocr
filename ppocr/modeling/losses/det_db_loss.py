@@ -16,7 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from .det_basic_loss import BalanceLoss, MaskL1Loss, DiceLoss
+from .det_basic_loss import BalanceLoss, MaskL1Loss, DiceLoss, CosSimLoss
 
 
 class DBLoss(object):
@@ -45,6 +45,7 @@ class DBLoss(object):
         threshold_maps = pred[:, 1, :, :]
         binary_maps = pred[:, 2, :, :]
 
+        # 缩放图损失
         loss_shrink_maps = BalanceLoss(
             shrink_maps,
             label_shrink_map,
@@ -52,10 +53,14 @@ class DBLoss(object):
             balance_loss=self.balance_loss,
             main_loss_type=self.main_loss_type,
             negative_ratio=self.ohem_ratio)
+        # 阈值图损失
         loss_threshold_maps = MaskL1Loss(threshold_maps, label_threshold_map,
                                          label_threshold_mask)
+        # 二值化图损失
         loss_binary_maps = DiceLoss(binary_maps, label_shrink_map,
                                     label_shrink_mask)
+        # 余弦损失
+        #
         loss_shrink_maps = self.alpha * loss_shrink_maps
         loss_threshold_maps = self.beta * loss_threshold_maps
 

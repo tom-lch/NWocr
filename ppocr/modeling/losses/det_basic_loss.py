@@ -64,9 +64,11 @@ def BalanceLoss(pred,
         loss = fluid.layers.sigmoid_cross_entropy_with_logits(pred, label=gt)
     elif main_loss_type == "MaskL1Loss":
         loss = MaskL1Loss(pred, gt, mask)
+    elif main_loss_type == "CosineLoss":
+        loss = CosineLoss(pred, gt)
     else:
         loss_type = [
-            'CrossEntropy', 'DiceLoss', 'Euclidean', 'BCELoss', 'MaskL1Loss'
+            'CrossEntropy', 'DiceLoss', 'Euclidean', 'BCELoss', 'MaskL1Loss', 'CosineLoss'
         ]
         raise Exception("main_loss_type in BalanceLoss() can only be one of {}".
                         format(loss_type))
@@ -113,4 +115,9 @@ def MaskL1Loss(pred, gt, mask, eps=1e-6):
     loss = fluid.layers.reduce_sum((fluid.layers.abs(pred - gt) * mask)) / (
         fluid.layers.reduce_sum(mask) + eps)
     loss = fluid.layers.reduce_mean(loss)
+    return loss
+
+
+def CosineLoss(pred, gt):
+    loss = 1 - fluid.layers.cos_sim(pred, gt)
     return loss
